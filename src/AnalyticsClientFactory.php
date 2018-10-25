@@ -27,7 +27,7 @@ class AnalyticsClientFactory
         ]);
 
         
-        $client->authenticate($config['token']);
+        $client->authenticate($config['code']);
         $client->setAccessToken($config['access_token']);
         // $client->setAuthConfig($config['service_account_credentials_json']);
 
