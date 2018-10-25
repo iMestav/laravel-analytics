@@ -26,6 +26,8 @@ class AnalyticsClientFactory
             Google_Service_Analytics::ANALYTICS_READONLY,
         ]);
 
+        
+        $client->authenticate($config['token']);
         $client->setAccessToken($config['access_token']);
         // $client->setAuthConfig($config['service_account_credentials_json']);
 
