@@ -6,6 +6,8 @@ use Google_Client;
 use Google_Service_Analytics;
 use Illuminate\Contracts\Cache\Repository;
 use Madewithlove\IlluminatePsrCacheBridge\Laravel\CacheItemPool;
+use Carbon\Carbon;
+use App\Models\Auth\User;
 
 class AnalyticsClientFactory
 {
@@ -20,21 +22,17 @@ class AnalyticsClientFactory
 
     public static function createAuthenticatedGoogleClient(array $config): Google_Client
     {
-        $client = new Google_Client();
-
-        $client->setScopes([
-            Google_Service_Analytics::ANALYTICS_READONLY,
-        ]);
-
-        // $client->setAuthConfig($config['service_account_credentials_json']);
-        $client->authenticate($config['code']);
+        $client = \Google::getClient();
         $client->setAccessToken($config['access_token']);
         if($config['expires']){
-            $client->fetchAccessTokenWithRefreshToken($config['refresh_token']);
+            $newCredentials = $client->refreshToken($config['access_token']);
+            User::find($config['startup_id'])->apiConnects()->whereProvider('google')->first()->update([
+                'access_token' => $newCredentials['access_token'],
+                'refresh_token' => $newCredentials['refresh_token'],
+                'created_at' => Carbon::now()->format('Y-m-d H:i:s'),
+                'expires_in' => Carbon::now()->addSeconds($newCredentials['expires_in'])->format('Y-m-d H:i:s')
+            ]);
         }
-
-        // self::configureCache($client, $config['cache']);
-
         return $client;
     }
 
